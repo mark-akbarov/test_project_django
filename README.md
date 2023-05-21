@@ -21,3 +21,5 @@
 >>> python manage.py migrate
 
 ```
+#### Note for using Email Service
+The emails could go to your spam folder be sure to check on that one.
