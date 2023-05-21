@@ -4,9 +4,9 @@ from user.models import User, VerifyUser
 from user.utils.verification import send_user_verify_code, check_verify_forgot_password_code
 
 
-def send_forgot_password_code(phone_number: str):
+def send_forgot_password_code(email: str):
     try:
-        user = User.objects.get(phone_number=phone_number)
+        user = User.objects.get(email=email)
         send_user_verify_code(user, is_forgot_password=True)
         return Response({'detail': 'successfull'})
     except User.DoesNotExist:
