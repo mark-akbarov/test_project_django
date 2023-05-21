@@ -40,7 +40,6 @@ INSTALLED_APPS = [
     
     # 3rd party
     'rest_framework',
-    'rest_framework_simplejwt',
     'rest_framework.authtoken',
     'django_redis',
     'easy_thumbnails',
