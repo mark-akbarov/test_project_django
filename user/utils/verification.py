@@ -1,32 +1,31 @@
-import requests
 from random import randint
+from mailjet_rest import Client
 from rest_framework import status
 from rest_framework.authtoken.models import Token
 from rest_framework.response import Response
-from config.settings import ESKIZ_URL, ESKIZ_PASSWORD, ESKIZ_EMAIL
+from config.settings import MAILJET_API_KEY, MAILJET_SECRET_KEY
 from user.models import VerifyUser, User
 
 
-def get_token():
-    url = ESKIZ_URL + 'auth/login/'
-    body = {'email': ESKIZ_EMAIL, 'password': ESKIZ_PASSWORD}
-    res = requests.post(url, json=body)
-    if res.status_code == 200:
-        return res.json().get('data').get('token')
-
-
-def send_sms(mobile_phone: str, code: str):
-    body = {
-    "mobile_phone": mobile_phone,
-    "message": f"Your verification code: {code}",
-    "from": "4546"
+def send_email(recipient_email: str, code: str):
+    api_key = MAILJET_API_KEY
+    api_secret = MAILJET_SECRET_KEY
+    mailjet = Client(auth=(api_key, api_secret), version='v3')
+    data = {
+    'FromEmail': "markakbarov@gmail.com",
+    'FromName': "Your Verification Code",
+    'Recipients': [
+        {
+        "Email": recipient_email,
+        "Name": "Someone"
+        }
+    ],
+    'Subject': "Verification Code",
+    'Html-part': f"<h3>Dear User, welcome to this wonderful app!</h3><br />This is your verification code: <b>{code}</b>"
     }
-    url = ESKIZ_URL + "message/sms/send/"
-    token = get_token()
-    headers = {'Authorization': f'Bearer {token}'}
-    res = requests.post(url, headers=headers, json=body)
-    if res.status_code == 200:
-        return 'success'
+    result = mailjet.send.create(data=data)
+    if result.status_code == '200':
+        return "success"
 
 
 def send_user_verify_code(user, is_forgot_password=False):
@@ -43,13 +42,13 @@ def send_user_verify_code(user, is_forgot_password=False):
             code=f'forgot_password_{code}',
             is_active=False
         )
-    send_sms(user.phone_number, code)
+    send_email(user.email, code)
 
 
-def check_verify_signup_code(phone_number, code):
+def check_verify_signup_code(email, code):
     check = VerifyUser.objects.filter(
-        user__phone_number=phone_number,
-        code=f'verification_code_{code}',
+        user__email=email,
+        code=f'verify_username_{code}',
         is_active=False
     )
     if check.exists():
@@ -66,18 +65,19 @@ def check_verify_signup_code(phone_number, code):
         return Response({'detail': 'invalid code'}, status=status.HTTP_400_BAD_REQUEST)
 
 
-def check_verify_forgot_password_code(phone_number, code):
+
+def check_verify_forgot_password_code(email, code):
     check = VerifyUser.objects.filter(
-        user__phone_number=phone_number,
+        user__email=email,
         code=f'forgot_password_{code}',
         is_active=False
     )
     return check.exists()
 
 
-def re_send_verify_user_code(phone_number):
+def re_send_verify_user_code(email):
     try:
-        user = User.objects.get(phone_number=phone_number)
+        user = User.objects.get(email=email)
         send_user_verify_code(user)
         return Response({'detail': 'successfully send new code'})
     except User.DoesNotExist:

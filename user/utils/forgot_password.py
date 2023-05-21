@@ -32,4 +32,4 @@ def set_new_password(email: str, code: str, new_password: str):
         ).update(is_active=True)
         return Response({'detail': 'successfull'})
     except User.DoesNotExist:
-        return Response({'detail': 'username does not exists'}, status=status.HTTP_400_BAD_REQUEST)
+        return Response({'detail': 'username does not exist'}, status=status.HTTP_400_BAD_REQUEST)

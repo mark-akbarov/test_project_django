@@ -1,11 +1,9 @@
 from rest_framework.views import APIView
 from rest_framework.permissions import AllowAny
-
-# Project
 from user.serializers.forgot_password import (
     SendForgotPasswordCodeSerializer,
     CheckForgotPasswordCodeSerializer,
-    ForgotPasswordCodeSerializer
+    SetNewPasswordSerializer
 )
 from user.utils.forgot_password import (
     send_forgot_password_code,
@@ -32,10 +30,10 @@ class CheckForgotPasswordCodeView(APIView):
         return check_forgot_password_code(**serializer.validated_data)
 
 
-class ForgotPasswordView(APIView):
+class SetNewPasswordView(APIView):
     permission_classes = [AllowAny]
 
     def post(self, request):
-        serializer = ForgotPasswordCodeSerializer(data=request.data)
+        serializer = SetNewPasswordSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         return set_new_password(**serializer.validated_data)
